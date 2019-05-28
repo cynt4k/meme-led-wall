@@ -3,24 +3,27 @@ import { Request, Response, NextFunction } from 'express';
 import compression from 'compression';
 import bodyParser from 'body-parser';
 import methodOverride from 'method-override';
-import { IExpressConfig } from '@home/types';
+import { IExpressConfig, ILdapConfig } from '@home/types';
 import { Logger } from '@home/core/utils';
 import { I18n, ExpressHandler } from '@home/misc';
 import lusca from 'lusca';
 import passport from 'passport';
+import { Passport } from '../auth';
 
 
 export namespace ExpressService {
     const app = express();
     let config: IExpressConfig;
 
-    export const init = async (c: IExpressConfig): Promise<void> => {
+    export const init = async (c: IExpressConfig, l: ILdapConfig): Promise<void> => {
         config = c;
+
+        await Passport.init(l);
 
         app.set('port', config.port);
         app.use(compression());
-        app.use(bodyParser.json());
-        app.use(bodyParser.urlencoded({ extended: true }));
+        app.use(bodyParser.json({ limit: '20mb'}));
+        app.use(bodyParser.urlencoded({ extended: true, limit: '20mb' }));
         app.use(methodOverride());
         app.use(lusca.xssProtection(true));
         app.use(passport.initialize());

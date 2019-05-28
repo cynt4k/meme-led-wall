@@ -1,9 +1,12 @@
 
-export interface IMongoConfig {
-    server: string;
-    username: string;
-    password: string;
-    database: string;
+export interface ILdapConfig {
+    host: string;
+    bindDN: string;
+    bindCredentials: string;
+    searchBase?: string;
+    searchFilter?: string;
+    searchAttributes?: string[];
+    uniqueAttribute: string;
 }
 
 export interface IExpressConfig {
@@ -14,6 +17,6 @@ export interface IExpressConfig {
 }
 
 export interface IConfig {
-    mongodb: IMongoConfig;
+    ldap: ILdapConfig;
     express: IExpressConfig;
 }
