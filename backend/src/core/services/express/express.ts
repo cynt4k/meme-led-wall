@@ -10,6 +10,7 @@ import lusca from 'lusca';
 import passport from 'passport';
 import { Passport } from '@home/core/services/auth';
 import { AuthRoute } from '@home/routes/auth-route';
+import { MemeRouter } from '@home/routes';
 
 
 export namespace ExpressService {
@@ -57,6 +58,7 @@ export namespace ExpressService {
         });
 
         app.use(`/${c.version}/auth`, AuthRoute);
+        app.use(`/${c.version}/meme`, MemeRouter);
 
         app.use('*', ExpressHandler.express);
         app.all('*', ExpressHandler.checkResponse);

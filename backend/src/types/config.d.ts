@@ -16,7 +16,12 @@ export interface IExpressConfig {
     token: string;
 }
 
+export interface ISettings {
+    imageFolder: string;
+}
+
 export interface IConfig {
     ldap: ILdapConfig;
     express: IExpressConfig;
+    settings: ISettings;
 }
