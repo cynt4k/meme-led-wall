@@ -6,6 +6,7 @@ import LdapStrategy from 'passport-ldapauth';
 import jwt from 'jsonwebtoken';
 import { IExpressConfig, ILdapConfig, IUserLdap } from '@home/types';
 import { I18n } from '@home/misc';
+import { IUser } from '@home/types/models/user';
 
 const LocalStrategy = passportLocal.Strategy;
 
@@ -47,7 +48,14 @@ export namespace Passport {
             });
 
             passport.use('login-ldap', new LdapStrategy(ldapConfig, async (req: any, user: IUserLdap, done) => {
-                done(null, user);
+                const returnUser: IUser = {
+                    username: user[c.uniqueAttribute],
+                    name: {
+                        firstname: user.givenName,
+                        lastname: user.sn
+                    }
+                };
+                done(null, returnUser);
             }));
 
             passport.authenticate('login-ldap', (e, user) => {
@@ -57,6 +65,8 @@ export namespace Passport {
     });
 
     export const generateToken = (req: Request) => {
+        const user: IUser = req.user;
+
         let refreshObject: Object = { };
         if (!req.body.unlimited) {
             refreshObject = {
@@ -64,10 +74,7 @@ export namespace Passport {
             };
         }
 
-        req.token = jwt.sign({
-            username: (req.user || { username: undefined}).username,
-            id: (req.user || {id: undefined}).id
-        }, expressConfig.token || '', refreshObject);
+        req.token = jwt.sign(user, expressConfig.token || '', refreshObject);
     };
 
     export const respondToken = (req: Request) => {
