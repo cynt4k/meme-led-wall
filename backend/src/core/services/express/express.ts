@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import compression from 'compression';
 import bodyParser from 'body-parser';
 import methodOverride from 'method-override';
-import { IExpressConfig, ILdapConfig } from '@home/types';
+import { IExpressConfig, ILdapConfig, ISettings } from '@home/types';
 import { Logger } from '@home/core/utils';
 import { I18n, ExpressHandler } from '@home/misc';
 import lusca from 'lusca';
@@ -11,20 +11,22 @@ import passport from 'passport';
 import { Passport } from '@home/core/services/auth';
 import { AuthRoute } from '@home/routes/auth-route';
 import { MemeRouter } from '@home/routes';
+import { MemeController } from '@home/controller';
 
 
 export namespace ExpressService {
     const app = express();
     let config: IExpressConfig;
 
-    export const init = async (c: IExpressConfig, l: ILdapConfig): Promise<void> => {
+    export const init = async (c: IExpressConfig, l: ILdapConfig, s: ISettings): Promise<void> => {
         config = c;
 
         await Passport.init(l);
+        MemeController.init(s);
 
         app.set('port', config.port);
         app.use(compression());
-        app.use(bodyParser.json({ limit: '20mb'}));
+        app.use(bodyParser.json({limit: '20mb'}));
         app.use(bodyParser.urlencoded({ extended: true, limit: '20mb' }));
         app.use(methodOverride());
         app.use(lusca.xssProtection(true));
@@ -49,7 +51,7 @@ export namespace ExpressService {
                 res.setHeader('Access-Control-Allow-Credentials', '1');
 
                 // Pass to next layer of middleware
-                next();
+                return next();
             });
         }
 

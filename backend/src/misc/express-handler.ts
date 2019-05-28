@@ -2,7 +2,7 @@ import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { validationResult } from 'express-validator/check';
 import { IResponse } from '@home/types/core';
 import { I18n, HttpCodes } from '@home/misc';
-import { TypeError } from '@home/errors';
+import { TypeError, MemeWallError } from '@home/errors';
 
 export namespace ExpressHandler {
     export const unkownRouteHandler = (req: Request, res: Response, next: NextFunction): void => {
@@ -48,6 +48,13 @@ export namespace ExpressHandler {
                 code: HttpCodes.NotAcceptable,
                 message: e.message,
                 data: e.params
+            };
+            return next();
+        }
+        if (e instanceof MemeWallError) {
+            res.data = {
+                code: HttpCodes.BadRequest,
+                message: e.message
             };
             return next();
         }
