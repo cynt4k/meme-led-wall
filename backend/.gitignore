@@ -4,3 +4,4 @@ config
 log
 node_modules
 .vscode
+data

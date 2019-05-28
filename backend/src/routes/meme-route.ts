@@ -20,5 +20,6 @@ const upload: multer.Instance = multer({
 const router: Router = Router();
 
 router.post('/upload', CheckAuth.isAuth, upload.single('meme'), MemeController.postUploadMeme);
+router.post('/show', CheckAuth.isAuth, MemeController.postShowMeme);
 
 export const MemeRouter: Router = router;
