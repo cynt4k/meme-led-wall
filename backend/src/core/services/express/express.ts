@@ -8,7 +8,8 @@ import { Logger } from '@home/core/utils';
 import { I18n, ExpressHandler } from '@home/misc';
 import lusca from 'lusca';
 import passport from 'passport';
-import { Passport } from '../auth';
+import { Passport } from '@home/core/services/auth';
+import { AuthRoute } from '@home/routes/auth-route';
 
 
 export namespace ExpressService {
@@ -54,6 +55,8 @@ export namespace ExpressService {
         app.get('/', (req: Request, res: Response, next: NextFunction) => {
             res.status(200).send(I18n.INFO_SUCCESS);
         });
+
+        app.use(`/${c.version}/auth`, AuthRoute);
 
         app.use('*', ExpressHandler.express);
         app.all('*', ExpressHandler.checkResponse);

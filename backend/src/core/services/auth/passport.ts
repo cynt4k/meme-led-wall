@@ -44,7 +44,7 @@ export namespace Passport {
             };
 
             passport.serializeUser<any, any>((user, done) => {
-                return done(undefined, user[c.uniqueAttribute]);
+                return done(undefined, user.username);
             });
 
             passport.use('login-ldap', new LdapStrategy(ldapConfig, async (req: any, user: IUserLdap, done) => {
