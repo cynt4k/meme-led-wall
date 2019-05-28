@@ -34,6 +34,8 @@ export namespace ExpressService {
         app.use(passport.session());
         app.use(Logger.getExpressLogger());
 
+        app.use('/files', express.static(s.imageFolder));
+
         if (process.env.NODE_ENV === 'dev') {
             app.use((req: Request, res: Response, next: NextFunction) => {
 
