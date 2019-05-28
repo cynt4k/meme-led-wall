@@ -1,0 +1,6 @@
+dist
+config
+!config/default.json
+log
+node_modules
+.vscode
