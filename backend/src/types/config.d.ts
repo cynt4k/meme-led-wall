@@ -18,6 +18,7 @@ export interface IExpressConfig {
 
 export interface ISettings {
     imageFolder: string;
+    memeScriptPath: string;
 }
 
 export interface IConfig {

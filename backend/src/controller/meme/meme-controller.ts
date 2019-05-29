@@ -77,8 +77,11 @@ export namespace MemeController {
     });
 
     const spawnMemeWall = (file: string): ChildProcessWithoutNullStreams => {
-        const child = spawn('ping', ['localhost']);
-        return child;
+        if (process.env.NODE_ENV === 'dev') {
+            return spawn('ping', ['localhost']);
+        } else {
+            return spawn('python3', [ config.memeScriptPath, file]);
+        }
     };
 
     export const postShowMeme = async (req: Request, res: Response, next: NextFunction) => {

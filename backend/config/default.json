@@ -15,6 +15,7 @@
         "token": "SDFJKLU)AF*(KJLSDFsu9sdg890*SSD890S79Sjkld890wekKL:/s/U()S)(#$&"
     },
     "settings": {
-        "imageFolder": "data"
+        "imageFolder": "data",
+        "memeScriptPath": "scripts/viewer.py"
     }
 }
