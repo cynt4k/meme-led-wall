@@ -1,6 +1,6 @@
 dist
-config
 !config/default.json
+config
 log
 node_modules
 .vscode

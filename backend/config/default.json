@@ -1,0 +1,20 @@
+{
+    "ldap": {
+        "host": "ldap://localhost:389",
+        "bindDN": "cn=root",
+        "bindCredentials": "test1234",
+        "searchBase": "ou=users,dc=example,dc=com",
+        "searchFilter": "(uid={{username}})",
+        "searchAttributes": [ "displayName", "mail" ],
+        "uniqueAttribute": "uid"
+    },
+    "express": {
+        "server": "0.0.0.0",
+        "port": 3000,
+        "version": "v1",
+        "token": "SDFJKLU)AF*(KJLSDFsu9sdg890*SSD890S79Sjkld890wekKL:/s/U()S)(#$&"
+    },
+    "settings": {
+        "imageFolder": "data"
+    }
+}
