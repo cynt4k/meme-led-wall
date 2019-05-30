@@ -108,6 +108,23 @@ export namespace SlackController {
                     const files = MemeService.getAllFiles();
                     await context.sendActivity(generateFileSelectMessage(files));
                     break;
+                case 'show':
+                    const file = command[1];
+                    if (!file) {
+                        await context.sendActivity('No filename specified');
+                        break;
+                    }
+                    try {
+                        await MemeService.updateMemeWall(file);
+                        await context.sendActivity('Meme successful updated');
+                    } catch (e) {
+                        if (e instanceof MemeWallError) {
+                            await context.sendActivity(e.message);
+                            break;
+                        }
+                        await context.sendActivity('Unknown error');
+                    }
+                    break;
                 default:
                     const message =
                     `Unknown command ${activity.text}`;
