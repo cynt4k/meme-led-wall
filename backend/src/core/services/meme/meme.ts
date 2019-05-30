@@ -157,4 +157,15 @@ export namespace MemeService {
             return Promise.reject(e);
         }
     };
+
+    export const getAllFiles = (): string[] => {
+        const files = fs.readdirSync(config.imageFolder);
+        return files.filter((file) => {
+            const fileInfo = file.split('.');
+            if (_.includes(['jpeg', 'jpg', 'png', 'gif'], fileInfo[1])) {
+                return true;
+            }
+            return false;
+        });
+    };
 }

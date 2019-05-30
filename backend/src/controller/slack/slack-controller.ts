@@ -27,7 +27,24 @@ export namespace SlackController {
 
     export const postReceive = (req: Request, res: Response, next: NextFunction) => {
         SlackService.adapter.processActivity(req, res, async (context) => {
-            await context.sendActivity('Jo message incomming');
+            const activity = context.activity;
+
+            switch (activity.channelData.callback_id) {
+                case 'meme_select':
+                    const actions: any[] = activity.channelData.actions;
+                    if (!actions) {
+                        await context.sendActivity('No meme selected');
+                        break;
+                    }
+                    if (actions.length > 1) {
+                        await context.sendActivity('Select only one meme');
+                    }
+                    MemeService.updateMemeWall(actions[0].value);
+                    await context.sendActivity('Meme changed');
+                    break;
+                default:
+                    Logger.warn(`Unknown callback_id - ${activity.channelData.callback_id}`);
+            }
         });
     };
 
@@ -46,7 +63,8 @@ export namespace SlackController {
             'You can use following command syntax\n' +
             ' - /memewall url [url_to_the_image] [name]\n' +
             ' - /memewall show [image_name]\n' +
-            ' - /memewall list [show_available_meme]\n';
+            ' - /memewall list\n';
+
 
             switch (command[0]) {
                 case '':
@@ -86,6 +104,10 @@ export namespace SlackController {
                         await context.sendActivity('Unknown error');
                     }
                     break;
+                case 'list':
+                    const files = MemeService.getAllFiles();
+                    await context.sendActivity(generateFileSelectMessage(files));
+                    break;
                 default:
                     const message =
                     `Unknown command ${activity.text}`;
@@ -100,6 +122,30 @@ export namespace SlackController {
             // console.log(context);
             return;
         });
+    };
+
+    const generateFileSelectMessage = (files: string[]): any => {
+        const message = {
+            text: 'Select one of this memes',
+            attachments: [{
+                text: 'Select goddamit',
+                contentType: 'string',
+                fallback: 'Unable to choose meme',
+                callback_id: 'meme_select',
+                actions: [] as object[]
+            }]
+        };
+        files.forEach((file) => {
+            const action = {
+                name: file,
+                text: file,
+                type: 'button',
+                value: file
+            };
+            message.attachments[0].actions.push(action);
+        });
+
+        return message;
     };
 
     export const postEvent = (req: Request, res: Response, next: NextFunction) => {
