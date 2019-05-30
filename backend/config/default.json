@@ -12,10 +12,18 @@
         "server": "0.0.0.0",
         "port": 3000,
         "version": "v1",
-        "token": "SDFJKLU)AF*(KJLSDFsu9sdg890*SSD890S79Sjkld890wekKL:/s/U()S)(#$&"
+        "token": "SDFJKLU)AF*(KJLSDFsu9sdg890*SSD890S79Sjkld890wekKL:/s/U()S)(#$&",
+        "tunnelDomain": "memewall"
+    },
+    "slack": {
+        "botToken": "asdfasdf",
+        "clientSecret": "asdfasdf",
+        "clientId": "asdfasdf.651552005206",
+        "clientSigningKey": "asdfasdf"
     },
     "settings": {
         "imageFolder": "data",
-        "memeScriptPath": "scripts/viewer.py"
+        "memeScriptPath": "scripts/viewer.py",
+        "hostname": "localhost"
     }
 }

@@ -53,7 +53,7 @@
             "check-else",
             "check-whitespace"
         ],
-        "prefer-template": true,
+        "prefer-template": false,
         "quotemark": [
             true,
             "single"
