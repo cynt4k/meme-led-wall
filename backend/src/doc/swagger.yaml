@@ -1,0 +1,170 @@
+basePath: null
+definitions:
+    IUserLoginToken:
+        description: ""
+        properties:
+            token:
+                type: string
+                description: ""
+        type: object
+        required:
+            - token
+    IResponseIUserLoginToken:
+        description: ""
+        properties:
+            status:
+                type: string
+                description: ""
+            code:
+                type: number
+                format: double
+                description: ""
+            message:
+                type: string
+                description: ""
+            data:
+                $ref: '#/definitions/IUserLoginToken'
+        type: object
+        required:
+            - status
+            - code
+            - message
+            - data
+    IUserLogin:
+        description: ""
+        properties:
+            username:
+                type: string
+                description: ""
+            password:
+                type: string
+                description: ""
+            unlimited:
+                type: boolean
+                description: ""
+        type: object
+        required:
+            - username
+            - password
+    IResponseNone:
+        description: ""
+        properties:
+            status:
+                type: string
+                description: ""
+            code:
+                type: number
+                format: double
+                description: ""
+            message:
+                type: string
+                description: ""
+        type: object
+        required:
+            - status
+            - code
+            - message
+    IApiShowMeme:
+        description: ""
+        properties:
+            name:
+                type: string
+                description: ""
+        type: object
+        required:
+            - name
+    IApiMemeUpload:
+        description: ""
+        properties:
+            name:
+                type: string
+                description: ""
+            meme:
+                type: object
+                description: ""
+        type: object
+        required:
+            - name
+            - meme
+info:
+    description: 'Backend for the meme led wall'
+    license:
+        name: MIT
+    title: backend-meme-led-wall
+    version: 1.0.0
+paths:
+    /v1/auth/login:
+        post:
+            operationId: AuthLoginUser
+            produces:
+                - application/json
+            responses:
+                '200':
+                    description: 'Return the login token'
+                    schema:
+                        $ref: '#/definitions/IResponseIUserLoginToken'
+            description: ""
+            tags:
+                - auth
+            consumes:
+                - application/json
+            parameters:
+                -
+                    description: ""
+                    in: body
+                    name: login
+                    required: true
+                    schema:
+                        $ref: '#/definitions/IUserLogin'
+    /v1/meme/show:
+        post:
+            operationId: MemeShowMeme
+            produces:
+                - application/json
+            responses:
+                '200':
+                    description: 'Show an meme by its filename'
+                    schema:
+                        $ref: '#/definitions/IResponseNone'
+            description: ""
+            tags:
+                - meme
+            consumes:
+                - application/json
+            parameters:
+                -
+                    description: ""
+                    in: body
+                    name: meme
+                    required: true
+                    schema:
+                        $ref: '#/definitions/IApiShowMeme'
+    /v1/meme/upload:
+        post:
+            operationId: MemeUploadMeme
+            produces:
+                - application/json
+            responses:
+                '200':
+                    description: 'Upload an meme to the controller'
+                    schema:
+                        $ref: '#/definitions/IResponseNone'
+            description: ""
+            tags:
+                - meme
+            consumes:
+                - application/x-www-form-urlencoded
+            parameters:
+                -
+                    description: ""
+                    in: body
+                    name: meme
+                    required: true
+                    schema:
+                        $ref: '#/definitions/IApiMemeUpload'
+swagger: '2.0'
+securityDefinitions:
+    token:
+        type: apiKey
+        name: Authorization
+        in: header
