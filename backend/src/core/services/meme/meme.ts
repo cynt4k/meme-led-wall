@@ -4,7 +4,7 @@ import _ from 'lodash';
 import path from 'path';
 import request from 'request';
 import fileType from 'file-type';
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import { spawn, ChildProcessWithoutNullStreams, ChildProcess } from 'child_process';
 import { MemeWallError } from '@home/errors';
 import { I18n } from '@home/misc';
 import { Logger } from '@home/core/utils';
@@ -13,7 +13,7 @@ export namespace MemeService {
 
     let initialized = false;
     let config: ISettings;
-    let memeWall: ChildProcessWithoutNullStreams;
+    let memeWall: ChildProcess;
 
     export const init = (s: ISettings): void => {
         config = s;
@@ -41,16 +41,19 @@ export namespace MemeService {
         if (process.env.NODE_ENV === 'dev') {
             task = spawn('ping', ['localhost']);
         } else {
-            task = spawn('python3', [ config.memeScriptPath, file]);
+            task = spawn('python3', [config.memeScriptPath, file]);
         }
 
         task.on('error', (e) => {
             Logger.error(e.message);
+            // @ts-ignore
+            task.killed = true;
         });
 
         task.on('exit', (code) => {
             Logger.debug(`Task exited with code - ${code}`);
-            task.kill();
+            // @ts-ignore
+            task.killed = true;
         });
 
         task.stderr.on('data', (data: Buffer) => {
@@ -70,8 +73,10 @@ export namespace MemeService {
         try {
             if (fs.existsSync(filepath)) {
                 if (memeWall) {
-                    memeWall.kill('SIGINT');
-                    await memeWallClosed();
+                    if (memeWall.killed === false) {
+                        memeWall.kill('SIGKILL');
+                        await memeWallClosed();
+                    }
                 }
 
                 memeWall = spawnMemeWall(filepath);

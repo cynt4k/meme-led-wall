@@ -97,7 +97,7 @@ export namespace SlackController {
                         text: helpCommandsMessage
                     }]);
             }
-            console.log(context);
+            // console.log(context);
             return;
         });
     };
