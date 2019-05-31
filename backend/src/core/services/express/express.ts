@@ -15,7 +15,7 @@ import { MemeController } from '@home/controller';
 
 
 export namespace ExpressService {
-    const app = express();
+    export const app = express();
     let config: IExpressConfig;
 
     export const init = async (c: IExpressConfig, l: ILdapConfig, s: ISettings): Promise<void> => {

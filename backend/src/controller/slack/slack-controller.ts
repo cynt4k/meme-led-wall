@@ -27,6 +27,14 @@ export namespace SlackController {
 
     export const postReceive = (req: Request, res: Response, next: NextFunction) => {
         SlackService.adapter.processActivity(req, res, async (context) => {
+
+            await SlackService.controller.handleTurn(context);
+            return;
+
+            const test = await SlackService.controller.handleTurn(context);
+            if (test) {
+                console.log(test);
+            }
             const activity = context.activity;
 
             switch (activity.channelData.callback_id) {
@@ -50,7 +58,11 @@ export namespace SlackController {
 
     export const postMeme = (req: Request, res: Response, next: NextFunction) => {
         SlackService.adapter.processActivity(req, res, async (context) => {
+
+            await SlackService.controller.handleTurn(context);
+            return;
             const activity = context.activity;
+            const bot = await SlackService.controller.spawn(context);
             const command = activity.text.split(' ');
             const helpMessage =
             'To use the Meme Wall you can do following things\n' +

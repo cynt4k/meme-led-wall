@@ -30,7 +30,7 @@ Logger.init();
     }
 
     try {
-        await SlackService.init(slackConfig, expressConfig, url);
+        await SlackService.init(slackConfig, expressConfig, memeSettings.imageFolder, url);
         Logger.info(`initialized slack service`);
     } catch (e) {
         Logger.error(`error while initializing slack service - ${e}`);
