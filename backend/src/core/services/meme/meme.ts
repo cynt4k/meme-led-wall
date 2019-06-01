@@ -20,7 +20,7 @@ export namespace MemeService {
         initialized = true;
     };
 
-    const fileExist = (file: string): boolean => {
+    export const fileExist = (file: string): boolean => {
         const filepath = path.resolve(`${config.imageFolder}/${file}`);
         return fs.existsSync(filepath);
     };

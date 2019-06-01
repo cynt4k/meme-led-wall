@@ -1,10 +1,10 @@
-import { SlackAdapter, SlackEventMiddleware, SlackMessageTypeMiddleware, SlackDialog } from 'botbuilder-adapter-slack';
+import { SlackAdapter, SlackEventMiddleware, SlackMessageTypeMiddleware, SlackDialog, SlackBotWorker } from 'botbuilder-adapter-slack';
 import { Botkit, BotWorker, BotkitMessage } from 'botkit';
 import request from 'request';
 import { ISlackConfig, IExpressConfig, BotkitMessageSlackCommand, BotkitMessageBlockAction } from '@home/types';
-import { ExpressService } from '../express';
 import { MemeService } from '../meme';
 import { MemeWallError } from '@home/errors';
+
 
 export namespace SlackService {
     let config: ISlackConfig;
@@ -38,6 +38,7 @@ export namespace SlackService {
             adapter: adapter,
             disable_webserver: true
         });
+
         setupController();
     };
 
@@ -48,19 +49,30 @@ export namespace SlackService {
         controller.on('block_actions', handleBlockActions);
     };
 
-    const handleBlockActions = async (bot: BotWorker, entryMessage: BotkitMessage) => {
+    const handleBlockActions = async (entryBot: BotWorker, entryMessage: BotkitMessage) => {
         const message = <BotkitMessageBlockAction> entryMessage;
+        const bot = <SlackBotWorker> entryBot;
 
         if (message.actions.length === 0) {
-            await bot.reply(message, 'No action provided');
+            await bot.reply(message, 'No action provided :never-give-up:');
             return;
         }
 
         if (message.actions[0].block_id === 'meme_select') {
             const action = message.actions[0];
             await MemeService.updateMemeWall(action.value);
-            await bot.reply(message, 'Meme updated');
-            return;
+            return await bot.replyInteractive(message, 'Meme updated :bananadance:');
+        }
+
+        if (message.actions[0].block_id === 'meme_preview') {
+            const action = message.actions[0];
+            const selected = action.selected_option;
+            if (!selected) {
+                return await bot.reply(message, 'No valid file selected :never-give-up:');
+            }
+            const files = MemeService.getAllFiles();
+            const newMessage = generateFilePreview(files, selected.value);
+            return await bot.replyInteractive(message, newMessage);
         }
     };
 
@@ -68,7 +80,7 @@ export namespace SlackService {
         const message = <BotkitMessageSlackCommand> entryMessage;
         switch (message.command) {
             case '/memewall': await handleMemeWall(bot, message); break;
-            default: await bot.reply(message, 'Unknown slash command');
+            default: await bot.reply(message, 'Unknown slash command :never-give-up:');
         }
     };
 
@@ -88,6 +100,9 @@ export namespace SlackService {
         ' - /memewall show [image_name]\n' +
         ' - /memewall list\n';
 
+        let files: string[];
+        let file: string;
+
         switch (commands[0]) {
             case '':
             case 'help':
@@ -100,16 +115,16 @@ export namespace SlackService {
                 const url = commands[1];
                 const filename = commands[2];
                 if (!url) {
-                    await bot.reply(message, 'No url specified');
+                    await bot.reply(message, 'No url specified :never-give-up:');
                     break;
                 }
                 if (!filename) {
-                    await bot.reply(message, 'No filename specified');
+                    await bot.reply(message, 'No filename specified :never-give-up:');
                     break;
                 }
                 try {
                     await MemeService.updateMemeWallUrl(url, filename);
-                    await bot.reply(message, 'Meme updated');
+                    await bot.reply(message, 'Meme updated :bananadance:');
                 } catch (e) {
                     if (e instanceof MemeWallError) {
                         await bot.reply(message, e.message);
@@ -119,96 +134,127 @@ export namespace SlackService {
                 }
                 break;
             case 'list':
-                const files = MemeService.getAllFiles();
-                await bot.reply(message, 'This could take some time - don\'t panic');
-                await bot.reply(message, generateFileSelectMessage(files));
+                files = MemeService.getAllFiles();
+                await bot.reply(message, generateFilePreview(files));
+                break;
+            case 'preview':
+                file = commands[1];
+                if (!file) {
+                    await bot.reply(message, 'No filename specified :never-give-up:');
+                    break;
+                }
+                if (!MemeService.fileExist(file)) {
+                    await bot.reply(message, 'File does not exist :never-give-up:');
+                    break;
+                }
+                files = MemeService.getAllFiles();
+                await bot.reply(message, generateFilePreview(files, file));
                 break;
             case 'show':
-                const file = commands[1];
+                file = commands[1];
                 if (!file) {
-                    await bot.reply(message, 'No filename specified');
+                    await bot.reply(message, 'No filename specified :never-give-up:');
                     break;
                 }
                 try {
                     await MemeService.updateMemeWall(file);
-                    await bot.reply(message, 'Meme updated');
+                    await bot.reply(message, 'Meme updated :bananadance:');
                 } catch (e) {
                     if (e instanceof MemeWallError) {
                         await bot.reply(message, e.message);
                         break;
                     }
-                    await bot.reply(message, 'Unknown error');
+                    await bot.reply(message, 'Unknown error :never-give-up:');
                 }
                 break;
             default:
-                await bot.reply(message, 'Unknown command');
+                await bot.reply(message, 'Unknown command :never-give-up:');
                 await bot.reply(message, helpCommandsMessage);
                 break;
         }
     };
 
-    const generateFileSelectMessage = (files: string[]): any => {
+    const generateFilePreview = (files: string[], selected?: string): any => {
         const message = {
             blocks: [] as any[]
         };
 
-        const numberMemes = files.length;
-
-        message.blocks.push({
+        const select = {
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `We found *${numberMemes}* memes in our fancy Database`
-            }
-        });
-
-        message.blocks.push({
-            type: 'divider'
-        });
-
-        files.forEach((file) => {
-            const webUrl = `${apiUrl}/files/${file}`;
-            const fileInfos = file.split('.');
-            const fileType = fileInfos[1];
-            const fileName = fileInfos[0];
-
-            message.blocks.push({
-                type: 'section',
-                text: {
-                    type: 'mrkdwn',
-                    text: `Filename: *${fileName}*\nFiletype: *${fileType}*`
+                text: 'Pick a nice meme from the dropdown'
+            },
+            block_id: 'meme_preview',
+            accessory: {
+                type: 'static_select',
+                placeholder: {
+                    type: 'plain_text',
+                    text: 'Select a meme',
+                    emoji: true
                 },
-                accessory: {
-                    type: 'image',
-                    image_url: webUrl,
-                    alt_text: file
-                }
-            });
-        });
-
-        message.blocks.push({
-            type: 'divider'
-        });
-
-        const buttons = {
-            type: 'actions',
-            block_id: 'meme_select',
-            elements: [] as any[]
+                options: [] as any[]
+            }
         };
 
         files.forEach((file) => {
-            buttons.elements.push({
-                type: 'button',
+            select.accessory.options.push({
                 text: {
                     type: 'plain_text',
-                    emoji: true,
-                    text: file
+                    text: file,
+                    emoji: true
                 },
                 value: file
             });
         });
 
-        message.blocks.push(buttons);
+        message.blocks.push(select);
+
+        if (selected) {
+            message.blocks.push({
+                type: 'divider'
+            });
+
+            const webUrl = `${apiUrl}/files/${selected}`;
+            const fileInfos = selected.split('.');
+            const fileName = fileInfos[0];
+            const fileType = fileInfos[1];
+
+            message.blocks.push({
+                type: 'section',
+                text: {
+                    type: 'mrkdwn',
+                    text: `Filename:\t ${fileName}\nFiletype:\t ${fileType}`
+                },
+                accessory: {
+                    type: 'image',
+                    image_url: webUrl,
+                    alt_text: selected
+                }
+            });
+
+            message.blocks.push({
+                type: 'divider'
+            });
+
+            message.blocks.push({
+                type: 'section',
+                text: {
+                    type: 'plain_text',
+                    text: ' '
+                },
+                block_id: 'meme_select',
+                accessory: {
+                    type: 'button',
+                    text: {
+                        type: 'plain_text',
+                        text: 'Show this meme NOW :party-parrot:',
+                        emoji: true
+                    },
+                    value: selected
+                }
+            });
+        }
 
         return message;
     };
