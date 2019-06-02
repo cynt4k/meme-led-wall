@@ -18,4 +18,8 @@ export namespace TunnelService {
             return resolve(initialized.url);
         });
     });
+
+    export const disconnect = (): void => {
+        tunnel.close();
+    };
 }

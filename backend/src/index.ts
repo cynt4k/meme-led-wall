@@ -44,4 +44,18 @@ Logger.init();
         Logger.error(`error while initializing meme service - ${e}`);
         process.exit(1);
     }
+
+    const disconnect = (): void => {
+        TunnelService.disconnect();
+    };
+
+    process.on('SIGTERM', (code) => {
+        disconnect();
+        process.exit(0);
+    });
+
+    process.on('SIGINT', (code) => {
+        disconnect();
+        process.exit(0);
+    });
 })();
