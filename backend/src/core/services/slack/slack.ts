@@ -1,6 +1,7 @@
 import { SlackAdapter, SlackEventMiddleware, SlackMessageTypeMiddleware, SlackDialog, SlackBotWorker } from 'botbuilder-adapter-slack';
 import { Botkit, BotWorker, BotkitMessage } from 'botkit';
 import request from 'request';
+import { exec } from 'child_process';
 import { ISlackConfig, IExpressConfig, BotkitMessageSlackCommand, BotkitMessageBlockAction } from '@home/types';
 import { MemeService } from '../meme';
 import { MemeWallError } from '@home/errors';
@@ -11,14 +12,16 @@ export namespace SlackService {
     let expressConfig: IExpressConfig;
     let dataPath: string;
     let apiUrl: string;
+    let adminPassword: string;
     export let controller: Botkit;
     export let adapter: SlackAdapter;
 
-    export const init = (c: ISlackConfig, e: IExpressConfig, p: string, url: string): void => {
+    export const init = (c: ISlackConfig, e: IExpressConfig, p: string, url: string, ap: string): void => {
         config = c;
         expressConfig = e;
         apiUrl = url;
         dataPath = p;
+        adminPassword = ap;
         const redirectUri = `${url}/${e.version}/slack`;
 
         adapter = new SlackAdapter({
@@ -98,7 +101,11 @@ export namespace SlackService {
         'You can use following command syntax\n' +
         ' - /memewall url [url_to_the_image] [name]\n' +
         ' - /memewall show [image_name]\n' +
-        ' - /memewall list\n';
+        ' - /memewall list\n' +
+        ' - /memewall preview [image_name]\n' +
+        ' - /memewall stop\n' +
+        ' - /memewall poweroff [password]\n' +
+        ' - /memewall reboot [password]';
 
         let files: string[];
         let file: string;
@@ -167,6 +174,41 @@ export namespace SlackService {
                     await bot.reply(message, 'Unknown error :never-give-up:');
                 }
                 break;
+            case 'stop':
+                try {
+                    await MemeService.stopMemeWall();
+                    await bot.reply(message, 'Meme killed :aaw-yeah:');
+                } catch (e) {
+                    if (e instanceof MemeWallError) {
+                        await bot.reply(message, e.message);
+                        break;
+                    }
+                    await bot.reply(message, 'Unkown error :never-give-up:');
+                }
+                break;
+            case 'reboot':
+            case 'poweroff':
+                const password = commands[1];
+                if (!password) {
+                    await bot.reply(message, 'No password provided :never-give-up:');
+                    break;
+                }
+                if (password !== adminPassword) {
+                    await bot.reply(message, 'Wrong password :never-give-up:');
+                    break;
+                }
+                await bot.reply(message, 'Shutdown/reboot now');
+                await (async () => new Promise<void>((resolve, reject) => {
+                    let command = 'shutdown';
+                    if (commands[0] === 'reboot') {
+                        command = 'reboot';
+                    }
+                    exec(command, async (err, stdout, stderr) => {
+                        if (err) await bot.reply(message, 'Error while shutdown/reboot');
+                        return resolve();
+                    });
+                }))();
+                break;
             default:
                 await bot.reply(message, 'Unknown command :never-give-up:');
                 await bot.reply(message, helpCommandsMessage);
@@ -224,7 +266,7 @@ export namespace SlackService {
                 type: 'section',
                 text: {
                     type: 'mrkdwn',
-                    text: `Filename:\t ${fileName}\nFiletype:\t ${fileType}`
+                    text: `Filename: ${fileName}\nFiletype: ${fileType}`
                 },
                 accessory: {
                     type: 'image',

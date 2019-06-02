@@ -52,8 +52,8 @@ export namespace MemeService {
 
         task.on('exit', (code) => {
             Logger.debug(`Task exited with code - ${code}`);
-            // @ts-ignore
-            task.killed = true;
+            // // @ts-ignore
+            // task.killed = true;
         });
 
         task.stderr.on('data', (data: Buffer) => {
@@ -72,12 +72,7 @@ export namespace MemeService {
 
         try {
             if (fs.existsSync(filepath)) {
-                if (memeWall) {
-                    if (memeWall.killed === false) {
-                        memeWall.kill('SIGKILL');
-                        await memeWallClosed();
-                    }
-                }
+                await stopMemeWall();
 
                 memeWall = spawnMemeWall(filepath);
                 return Promise.resolve();
@@ -87,6 +82,16 @@ export namespace MemeService {
         } catch (e) {
             return Promise.reject(e);
         }
+    };
+
+    export const stopMemeWall = async (): Promise<void> => {
+        if (memeWall) {
+            if (memeWall.killed === false) {
+                memeWall.kill('SIGINT');
+                await memeWallClosed();
+            }
+        }
+        return Promise.resolve();
     };
 
     const downloadFile = (url: string, fileName: string): Promise<void> => new Promise<void>((resolve, reject) => {

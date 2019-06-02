@@ -17,7 +17,7 @@ export namespace Logger {
                 console: { type: 'console' }
             },
             categories: {
-                prd: { appenders: ['console'], level: 'trace' },
+                prd: { appenders: ['console'], level: 'warn' },
                 dev: { appenders: ['debugLog', 'console'], level: 'trace' },
                 testing: { appenders: ['debugLog', 'console'], level: 'trace' },
                 default: { appenders: ['console'], level: 'trace'}

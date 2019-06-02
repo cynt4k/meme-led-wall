@@ -24,6 +24,7 @@
     "settings": {
         "imageFolder": "data",
         "memeScriptPath": "scripts/viewer.py",
-        "hostname": "localhost"
+        "hostname": "localhost",
+        "adminPassword": "test1234"
     }
 }

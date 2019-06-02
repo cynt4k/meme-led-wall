@@ -27,6 +27,7 @@ export interface ISlackConfig {
 export interface ISettings {
     imageFolder: string;
     memeScriptPath: string;
+    adminPassword: string;
 }
 
 export interface IConfig {
